@@ -7,5 +7,8 @@ setup(
     description='Korean Text Processor',
     author='Lee Seongjoo',
     author_email='seongjoo@codebasic.io',
-    packages=find_packages()
+    packages=find_packages(),
+    package_data={
+        'pyko': ['java/*.jar']
+    }
 )

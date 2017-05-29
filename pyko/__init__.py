@@ -1,10 +1,9 @@
 # coding: utf-8
 import os
+from pkg_resources import resource_filename
 
 from jpype import getDefaultJVMPath
 import jpype
-
-root = os.path.dirname(__file__)
 
 
 def java_str(func):
@@ -17,7 +16,7 @@ def java_str(func):
 class OpenKoreanTextProcessor:
     def __init__(self):
         if not jpype.isJVMStarted():
-            libpath = os.path.join(root, '../lib')
+            libpath = resource_filename(__name__, 'java')
             jars = os.listdir(libpath)
             jars = [os.path.join(libpath, item) for item in jars]
             jvm_arg = '-Djava.class.path={}'.format(os.pathsep.join(jars))
