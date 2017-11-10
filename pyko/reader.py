@@ -38,7 +38,7 @@ class SejongCorpusReader(CorpusReader):
         self.encoding = encoding
         CorpusReader.__init__(self, root, fileids)
 
-    def sents(self, fileids=None, strip_space=True, stem=False):
+    def sents(self, fileids=None, tagged=False):
         fileids = self.get_fileids(fileids)
 
         sents = []
@@ -46,6 +46,37 @@ class SejongCorpusReader(CorpusReader):
             soup = BeautifulSoup(open(fid, encoding=self.encoding), 'lxml')
             body = soup.find('text')
             sent_tags = body.find_all('s')
-            sents += [t.text for t in sent_tags]
+            if not tagged:
+                sents += [t.text for t in sent_tags]
+            else:
+                for tag in sent_tags:
+                    words = []
+                    for line in tag.text.split('\n')[1:]:
+                        word = line.split('\t')[1]
+                        if word:
+                            words.append(word)
+                    sent = ' '.join(words)
+                    if sent:
+                        sents.append(sent)
 
         return sents
+
+    def words(self, fileids=None, tagged=True):
+        fileids = self.get_fileids(fileids)
+
+        words = []
+        if not tagged:
+            raise NotImplemented
+
+        for fid in fileids:
+            soup = BeautifulSoup(open(fid, encoding=self.encoding), 'lxml')
+            body = soup.find('text')
+            sent_tags = body.find_all('s')
+
+            for tag in sent_tags:
+                for line in tag.text.split('\n')[1:]:
+                    word = line.split('\t')[1]
+                    if word:
+                        words.append(word)
+
+        return words
