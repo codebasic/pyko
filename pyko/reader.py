@@ -46,18 +46,22 @@ class SejongCorpusReader(CorpusReader):
             filepath = os.path.join(self._root, fid)
             soup = BeautifulSoup(open(filepath, encoding=self._encoding), 'lxml')
             body = soup.find('text')
-            sent_tags = body.find_all('s')
+            sent_elt = body.find_all('s')
 
-            for tag in sent_tags:
-                for line in tag.text.split('\n')[1:]:
-                    tagged_tokens = line.split('\t')[-1].split('+')
-                    if len(tagged_tokens) < 2:
+            for elt in sent_elt:
+                if elt.find('note'):
+                    continue # skip <note>
+                for line in elt.text.split('\n'):
+                    raw_token = line.split('\t')[-2:]
+                    if not raw_token[-1]:
                         continue
-                    tagged_tokens = [tuple(token.split('/')) for token in tagged_tokens]
+                    
+                    token = raw_token[0]
+                    tagged_tokens = tuple(tuple(tag.split('/')) for tag in raw_token[-1].split('+'))
 
                     if tagged:
-                        words.extend(tagged_tokens)
+                        words.append((token, tagged_tokens))
                     else:
-                        words.extend(token for token, tag in tagged_tokens)
+                        words.append(token)
 
         return words
