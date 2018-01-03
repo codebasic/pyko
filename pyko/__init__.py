@@ -6,6 +6,7 @@ from pkg_resources import resource_filename
 from jpype import getDefaultJVMPath
 import jpype
 
+import pyko.reader
 
 def preprocessor(text):
     #비문자제거패턴 = re.compile(r'[^ㄱ-ㅣ가-힣a-zA-Z0-9 ]')
