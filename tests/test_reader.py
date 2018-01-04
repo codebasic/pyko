@@ -29,9 +29,14 @@ class TestSejong:
                 'corpus/sejong', 'spoken/word_tag/.+\.txt', encoding='utf-16')
         tagged_tokens = reader.words(tagged=True)
         
-#        assert len(tagged_tokens)
+        assert len(tagged_tokens)
         
         for token, tags in tagged_tokens:
             assert len(tags)
             for tag in tags:
                 assert len(tag) == 2
+
+        assert tagged_tokens[0]
+        
+        assert len(tagged_tokens[:10]) == 10
+        assert len(tagged_tokens[10:30]) == 20

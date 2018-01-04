@@ -1,7 +1,9 @@
 # coding: utf-8
 import os
 import re
+
 from pkg_resources import resource_filename
+
 
 from jpype import getDefaultJVMPath
 import jpype
