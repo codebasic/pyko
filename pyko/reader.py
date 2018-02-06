@@ -108,7 +108,7 @@ class SejongSentSeq(TokenSeq):
                 tagged_tokens = tuple(tuple(tag.split('/')) for tag in raw_token[-1].split('+'))
 
                 if self._tagged:
-                    sent.append((token, tagged_tokens))
+                    sent.extend(tagged_tokens) 
                 else:
                     sent.append(token)
             yield sent
