@@ -15,7 +15,8 @@ class TokenSeq(abc.ABC):
         self.encoding = encoding
                 
     def __iter__(self):
-        return itertools.chain(token for fid in self.fileids for token in self._get_token(fid))
+        return itertools.chain(
+                token for fid in self.fileids for token in self._get_token(fid) if token)
     
     def __len__(self):
         if not hasattr(self, 'length'):
@@ -50,11 +51,14 @@ class SejongCorpusReader(CorpusReader):
 
     def words(self, fileids=None, tagged=False):
         """각 파일의 생성기 토큰을 하나의 생성기로 반환"""
-        return SejongWordSeq([fid for fid in self.abspaths(fileids)], tagged=tagged)
+        return SejongWordSeq([fid for fid in self.abspaths(fileids)], encoding=self._encoding, tagged=tagged)
+    
+    def sents(self, fileids=None, tagged=False):
+        return SejongSentSeq([fid for fid in self.abspaths(fileids)], encoding=self._encoding, tagged=tagged)
             
                     
 class SejongWordSeq(TokenSeq):
-    def __init__(self, fileids, encoding='utf-16', tagged=False):
+    def __init__(self, fileids, encoding, tagged):
         super().__init__(fileids, encoding)
         self._tagged = tagged
         
@@ -80,3 +84,31 @@ class SejongWordSeq(TokenSeq):
                 else:
                     yield token
 
+
+class SejongSentSeq(TokenSeq):
+    def __init__(self, fileids, encoding, tagged):
+        super().__init__(fileids, encoding)
+        self._tagged = tagged
+        
+    def _get_token(self, fileid):
+        soup = BeautifulSoup(open(fileid, encoding=self.encoding), 'lxml')
+        body = soup.find('text')
+        sent_elt = body.find_all('s')
+        
+        for elt in sent_elt:
+            if elt.find('note'):
+                continue # skip <note>
+            sent = []
+            for line in elt.text.split('\n'):
+                raw_token = line.split('\t')[-2:]
+                if not raw_token[-1]:
+                    continue
+                
+                token = raw_token[0]
+                tagged_tokens = tuple(tuple(tag.split('/')) for tag in raw_token[-1].split('+'))
+
+                if self._tagged:
+                    sent.append((token, tagged_tokens))
+                else:
+                    sent.append(token)
+            yield sent
