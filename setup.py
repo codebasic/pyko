@@ -13,5 +13,5 @@ setup(
     package_data={
         'pyko': ['java/*.jar']
     },
-    install_requires=['jpype1']
+    install_requires=['jpype1', 'nltk']
 )
