@@ -10,13 +10,12 @@ from nltk.corpus.reader.api import CorpusReader
 from bs4 import BeautifulSoup
 
 class TokenSeq(abc.ABC):
-    def __init__(self, fileids, encoding, tagged):
+    def __init__(self, fileids, encoding):
         self.fileids = fileids
-        self.tagged = tagged
         self.encoding = encoding
                 
     def __iter__(self):
-        return itertools.chain(token for fid in self.fileids for token in self._get_token(fid, self.tagged))
+        return itertools.chain(token for fid in self.fileids for token in self._get_token(fid))
     
     def __len__(self):
         if not hasattr(self, 'length'):
@@ -28,10 +27,10 @@ class TokenSeq(abc.ABC):
         it = iter(self)
         if isinstance(index, slice):
             item_it = itertools.islice(it, index.start, index.stop, index.step)
+            return [token for token in item_it]
         else:
             item_it = itertools.islice(it, index, index+1)
-            
-        return [token for token in item_it]
+            return next(item_it)        
 
     def __repr__(self):
         return reprlib.repr([token for token in itertools.islice(iter(self), 10)])
@@ -49,16 +48,17 @@ class SejongCorpusReader(CorpusReader):
         super().__init__(root, fileids, encoding)
 
 
-    def words(self, fileids=None, tagged=True):
+    def words(self, fileids=None, tagged=False):
         """각 파일의 생성기 토큰을 하나의 생성기로 반환"""
         return SejongWordSeq([fid for fid in self.abspaths(fileids)], tagged=tagged)
             
                     
 class SejongWordSeq(TokenSeq):
-    def __init__(self, fileids, encoding='utf-16', tagged=True):
-        super().__init__(fileids, encoding, tagged)
+    def __init__(self, fileids, encoding='utf-16', tagged=False):
+        super().__init__(fileids, encoding)
+        self._tagged = tagged
         
-    def _get_token(self, fileid, tagged):
+    def _get_token(self, fileid):
         """각 파일별 토큰 생성"""
         soup = BeautifulSoup(open(fileid, encoding=self.encoding), 'lxml')
         body = soup.find('text')
@@ -75,7 +75,7 @@ class SejongWordSeq(TokenSeq):
                 token = raw_token[0]
                 tagged_tokens = tuple(tuple(tag.split('/')) for tag in raw_token[-1].split('+'))
 
-                if tagged:
+                if self._tagged:
                     yield (token, tagged_tokens)
                 else:
                     yield token
