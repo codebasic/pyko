@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='pyko',
-    version='0.2.1',
+    version='0.3.0',
     description='Korean Text Processor',
     author='Lee Seongjoo',
     author_email='seongjoo@codebasic.io',
