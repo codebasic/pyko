@@ -3,12 +3,17 @@ import re
 import pytest
 from pyko.reader import SejongCorpusReader
 
+@pytest.fixture
+def reader():
+    reader = SejongCorpusReader(
+        'corpus/sejong', r'spoken/word_tag/.+\.txt', encoding='utf-16')
+    return reader
 
 class TestSejong:
     def test_fileids(self):
-        ROOT = '../corpus/sejong/'
+        ROOT = 'corpus/sejong/'
 
-        pattern = '.+/.+/.+\.txt'
+        pattern = r'.+/.+/.+\.txt'
         files_regex = re.compile(ROOT + pattern)
         expected_files = []
         for root, dirs, files in os.walk(ROOT):
@@ -24,13 +29,9 @@ class TestSejong:
 
         assert sorted(expected_files) == sorted(fileids)
         
-    def test_words(self):
-        reader = SejongCorpusReader(
-                'corpus/sejong', 'spoken/word_tag/.+\.txt', encoding='utf-16')
-        tagged_tokens = reader.words(tagged=True)
-        
-        assert len(tagged_tokens)
-        
+    def test_tagged_words(self, reader):
+        tagged_tokens = reader.words(tagged=True)        
+        assert len(tagged_tokens)        
         for token, tags in tagged_tokens:
             assert len(tags)
             for tag in tags:
@@ -40,3 +41,13 @@ class TestSejong:
         
         assert len(tagged_tokens[:10]) == 10
         assert len(tagged_tokens[10:30]) == 20
+
+    def test_words(self):
+        reader = SejongCorpusReader(
+            root='corpus/sejong', 
+            fileids=['spoken/word_tag/5CT_0013.txt', 'written/word_tag/BSAA0001.txt'])
+        tokens = reader.words()
+        tagged_tokens = reader.words(tagged=True)
+        test_tokens = [word for raw, token in tagged_tokens for word, tag in token]
+        assert tokens[:] == test_tokens[:]
+            

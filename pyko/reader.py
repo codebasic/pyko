@@ -1,5 +1,5 @@
 """
-Copyright (C) 2017 Codebasic
+Copyright (C) 2017-2018 Codebasic
 Author: Lee Seongjoo <seongjoo@codebasic.io>
 """
 import itertools
@@ -17,13 +17,13 @@ class TokenSeq(abc.ABC):
 
     def __iter__(self):
         return itertools.chain(
-                token for fid in self.fileids for token in self._get_token(fid) if token)
+            token for fid in self.fileids for token in self._get_token(fid) if token)
 
     def __len__(self):
         if not hasattr(self, 'length'):
             self.length = 0
             for _ in iter(self):
-                self.length +=1
+                self.length += 1
         return self.length
 
     def __getitem__(self, index):
@@ -39,7 +39,7 @@ class TokenSeq(abc.ABC):
         return reprlib.repr([token for token in itertools.islice(iter(self), 10)])
 
     @abc.abstractmethod
-    def _get_token(self, fileid, tagged):
+    def _get_token(self, fileid):
         """yield a token"""
 
 
@@ -49,7 +49,6 @@ class SejongCorpusReader(CorpusReader):
 
     def __init__(self, root, fileids, encoding='utf-16'):
         super().__init__(root, fileids, encoding)
-
 
     def words(self, fileids=None, tagged=False):
         """각 파일의 생성기 토큰을 하나의 생성기로 반환"""
@@ -72,19 +71,21 @@ class SejongWordSeq(TokenSeq):
 
         for elt in sent_elt:
             if elt.find('note'):
-                continue # skip <note>
+                continue  # skip <note>
             for line in elt.text.split('\n'):
                 raw_token = line.split('\t')[-2:]
                 if not raw_token[-1]:
                     continue
 
                 token = raw_token[0]
-                tagged_tokens = tuple(tuple(tag.split('/')) for tag in raw_token[-1].split('+'))
+                tagged_tokens = tuple(tuple(tag.split('/'))
+                                      for tag in raw_token[-1].split('+'))
 
                 if self._tagged:
                     yield (token, tagged_tokens)
                 else:
-                    yield token
+                    for word, tag in tagged_tokens:
+                        yield word
 
 
 class SejongSentSeq(TokenSeq):
@@ -99,7 +100,7 @@ class SejongSentSeq(TokenSeq):
 
         for elt in sent_elt:
             if elt.find('note'):
-                continue # skip <note>
+                continue  # skip <note>
             sent = []
             for line in elt.text.split('\n'):
                 raw_token = line.split('\t')[-2:]
@@ -107,7 +108,8 @@ class SejongSentSeq(TokenSeq):
                     continue
 
                 token = raw_token[0]
-                tagged_tokens = tuple(tuple(tag.split('/')) for tag in raw_token[-1].split('+'))
+                tagged_tokens = tuple(tuple(tag.split('/'))
+                                      for tag in raw_token[-1].split('+'))
 
                 if self._tagged:
                     sent.extend(tagged_tokens)
