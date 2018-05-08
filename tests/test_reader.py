@@ -3,11 +3,13 @@ import re
 import pytest
 from pyko.reader import SejongCorpusReader
 
+
 @pytest.fixture
 def reader():
     reader = SejongCorpusReader(
         'corpus/sejong', r'spoken/word_tag/.+\.txt', encoding='utf-16')
     return reader
+
 
 class TestSejong:
     def test_fileids(self):
@@ -28,26 +30,28 @@ class TestSejong:
         fileids = [os.path.join(ROOT, entry) for entry in reader.fileids()]
 
         assert sorted(expected_files) == sorted(fileids)
-        
+
     def test_tagged_words(self, reader):
-        tagged_tokens = reader.words(tagged=True)        
-        assert len(tagged_tokens)        
+        tagged_tokens = reader.words(tagged=True)
+        assert len(tagged_tokens)
         for token, tags in tagged_tokens:
             assert len(tags)
             for tag in tags:
                 assert len(tag) == 2
 
         assert tagged_tokens[0]
-        
+
         assert len(tagged_tokens[:10]) == 10
         assert len(tagged_tokens[10:30]) == 20
 
     def test_words(self):
         reader = SejongCorpusReader(
-            root='corpus/sejong', 
+            root='corpus/sejong',
             fileids=['spoken/word_tag/5CT_0013.txt', 'written/word_tag/BSAA0001.txt'])
         tokens = reader.words()
         tagged_tokens = reader.words(tagged=True)
-        test_tokens = [word for raw, token in tagged_tokens for word, tag in token]
+        test_tokens = []
+        for raw, token in tagged_tokens:
+            for word, tag in token:
+                test_tokens.append(word)
         assert tokens[:] == test_tokens[:]
-            
