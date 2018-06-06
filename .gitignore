@@ -1,24 +1,6 @@
 
 # Created by https://www.gitignore.io/api/python,microsoftoffice
 
-### MicrosoftOffice ###
-*.tmp
-
-# Word temporary
-~$*.doc*
-
-# Excel temporary
-~$*.xls*
-
-# Excel Backup File
-*.xlk
-
-# PowerPoint temporary
-~$*.ppt*
-
-# Visio autosave temporary files
-*.~vsd*
-
 ### Python ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -106,10 +88,6 @@ ENV/
 env.bak/
 venv.bak/
 
-# Spyder project settings
-.spyderproject
-.spyproject
-
 # Rope project settings
 .ropeproject
 
@@ -119,5 +97,6 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-
 # End of https://www.gitignore.io/api/python,microsoftoffice
+
+corpus
