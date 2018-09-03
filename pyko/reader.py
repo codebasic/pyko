@@ -1,12 +1,13 @@
 """
 Copyright (C) 2017-2018 Codebasic
+
 Author: Lee Seongjoo <seongjoo@codebasic.io>
 """
 import itertools
 import abc
 import reprlib
 
-from nltk.corpus.reader.api import CorpusReader
+from nltk.corpus.reader import CorpusReader
 from bs4 import BeautifulSoup
 
 
@@ -44,18 +45,29 @@ class TokenSeq(abc.ABC):
 
 
 class SejongCorpusReader(CorpusReader):
-    """Corpus reader for 세종 말뭉치 (Sejong Corpus)
+    """
+    Corpus reader for 세종 말뭉치 (Sejong Corpus)
     """
 
     def __init__(self, root, fileids, encoding='utf-16'):
         super().__init__(root, fileids, encoding)
 
     def words(self, fileids=None, tagged=False):
-        """각 파일의 생성기 토큰을 하나의 생성기로 반환"""
+        """
+        말뭉치로부터 토큰 획득
+
+        :param fileids: 말뭉치 파일 ID
+        :type fileids: list[str] or None
+        :return: 토큰 생성기
+        :rtype: generator
+        """
         return SejongWordSeq([fid for fid in self.abspaths(fileids)], encoding=self._encoding, tagged=tagged)
 
     def sents(self, fileids=None, tagged=False):
         return SejongSentSeq([fid for fid in self.abspaths(fileids)], encoding=self._encoding, tagged=tagged)
+
+    def tagged_sents(self, fileids=None):
+        return self.sents(fileids, tagged=True)
 
 
 class SejongWordSeq(TokenSeq):
@@ -101,18 +113,26 @@ class SejongSentSeq(TokenSeq):
         for elt in sent_elt:
             if elt.find('note'):
                 continue  # skip <note>
-            sent = []
-            for line in elt.text.split('\n'):
-                raw_token = line.split('\t')[-2:]
-                if not raw_token[-1]:
-                    continue
 
-                token = raw_token[0]
-                tagged_tokens = tuple(tuple(tag.split('/'))
-                                      for tag in raw_token[-1].split('+'))
+            if self._tagged:
+                sent = []            
+                for line in elt.text.split('\n'):
+                    raw_token = line.split('\t')[-2:]
+                    if not raw_token[-1]:
+                        continue
 
-                if self._tagged:
+                    tagged_tokens = tuple(tuple(tag.split('/'))
+                                        for tag in raw_token[-1].split('+'))
+
+                    
                     sent.extend(tagged_tokens)
-                else:
-                    sent.append(token)
-            yield sent
+                yield sent
+            else:
+                pieces=[]
+                for line in elt.text.split('\n'):
+                    raw_token = line.split('\t')[-2:]
+                    if not raw_token[-1]:
+                        continue
+
+                    pieces.append(raw_token[0])
+                yield ' '.join(pieces)

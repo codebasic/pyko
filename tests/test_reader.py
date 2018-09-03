@@ -55,3 +55,13 @@ class TestSejong:
             for word, tag in token:
                 test_tokens.append(word)
         assert tokens[:] == test_tokens[:]
+
+    def test_sents(self, reader):
+        sents = reader.sents()
+        expected_sent = '뭐 타고 가?'
+        assert expected_sent == sents[0]
+
+    def test_tagged_sents(self, reader):
+        tagged_sents = reader.tagged_sents()
+        expected = [('뭐', 'NP'), ('타', 'VV'), ('고', 'EC'), ('가', 'VV'), ('ㅏ', 'EF'), ('?', 'SF')]
+        assert expected == tagged_sents[0]
