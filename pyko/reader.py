@@ -63,11 +63,14 @@ class SejongCorpusReader(CorpusReader):
         """
         return SejongWordSeq([fid for fid in self.abspaths(fileids)], encoding=self._encoding, tagged=tagged)
 
-    def sents(self, fileids=None, tagged=False):
-        return SejongSentSeq([fid for fid in self.abspaths(fileids)], encoding=self._encoding, tagged=tagged)
+    def sents(self, fileids=None, **options):
+        return SejongSentSeq([fid for fid in self.abspaths(fileids)], encoding=self._encoding, **options)
 
     def tagged_sents(self, fileids=None):
         return self.sents(fileids, tagged=True)
+
+    def token_sents(self, fileids=None):
+        return self.sents(fileids, token=True)
 
 
 class SejongWordSeq(TokenSeq):
@@ -101,9 +104,9 @@ class SejongWordSeq(TokenSeq):
 
 
 class SejongSentSeq(TokenSeq):
-    def __init__(self, fileids, encoding, tagged):
+    def __init__(self, fileids, encoding, **options):
         super().__init__(fileids, encoding)
-        self._tagged = tagged
+        self._options = options
 
     def _get_token(self, fileid):
         soup = BeautifulSoup(open(fileid, encoding=self.encoding), 'lxml')
@@ -114,7 +117,7 @@ class SejongSentSeq(TokenSeq):
             if elt.find('note'):
                 continue  # skip <note>
 
-            if self._tagged:
+            if self._options.get('tagged'):
                 sent = []            
                 for line in elt.text.split('\n'):
                     raw_token = line.split('\t')[-2:]
@@ -127,6 +130,20 @@ class SejongSentSeq(TokenSeq):
                     
                     sent.extend(tagged_tokens)
                 yield sent
+
+            elif self._options.get('token'):
+                pieces=[]
+                for line in elt.text.split('\n'):
+                    raw_token = line.split('\t')[-2:]
+                    if not raw_token[-1]:
+                        continue
+                    
+                    tagged_tokens = tuple(tuple(tag.split('/'))
+                                        for tag in raw_token[-1].split('+'))
+                    tokens = tuple(token for token, tag in tagged_tokens)
+                    pieces.extend(tokens)
+                yield tuple(pieces)
+
             else:
                 pieces=[]
                 for line in elt.text.split('\n'):

@@ -65,3 +65,7 @@ class TestSejong:
         tagged_sents = reader.tagged_sents()
         expected = [('뭐', 'NP'), ('타', 'VV'), ('고', 'EC'), ('가', 'VV'), ('ㅏ', 'EF'), ('?', 'SF')]
         assert expected == tagged_sents[0]
+
+    def test_token_sents(self, reader):        
+        expected = ('뭐', '타', '고', '가', 'ㅏ', '?')
+        assert expected == reader.token_sents()[0]
