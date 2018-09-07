@@ -2,6 +2,7 @@
 from random import choice
 import types
 import numpy as np
+from pandas import Series
 import pytest
 
 from pyko.reader import SejongCorpusReader
@@ -57,3 +58,45 @@ class TestWordSet:
             assert x.ndim == 2
             assert x.shape[1] == 2
             assert all(np.isin(labels, [0, 1]))
+
+    def test_cbow(self, reader):
+        word_set = WordSet(reader.words(reader.fileids()[0]))
+        texts = reader.token_sents()[:10]
+
+        def validate_cbow(cbow, window_size, negative_samples):
+            labels = []
+            for pairs in cbow:
+                for (context_wids, target_wid), label in pairs:
+                    labels.append(label)
+                    assert len(context_wids) == 2*window_size
+                    assert target_wid == int(target_wid)
+            
+            # negative samples check
+            if negative_samples:
+                label_freq = Series(labels).value_counts()
+                assert len(label_freq) > 1
+                assert int(label_freq[1] * negative_samples) == label_freq[0]
+        
+        negative_samples = 0.0
+        for window_size in range(1, 5):
+            cbow = word_set.generate_cbow(
+                texts, window_size, negative_samples)            
+            validate_cbow(cbow, window_size, negative_samples)
+
+        negative_samples = 1.0
+        for window_size in range(1, 5):
+            cbow = word_set.generate_cbow(
+                texts, window_size, negative_samples)            
+            validate_cbow(cbow, window_size, negative_samples)
+
+        negative_samples = 0.3
+        for window_size in range(1, 5):
+            cbow = word_set.generate_cbow(
+                texts, window_size, negative_samples)            
+            validate_cbow(cbow, window_size, negative_samples)
+
+        negative_samples = 3.3
+        for window_size in range(1, 5):
+            cbow = word_set.generate_cbow(
+                texts, window_size, negative_samples)            
+            validate_cbow(cbow, window_size, negative_samples)

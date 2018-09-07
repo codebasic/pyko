@@ -117,3 +117,43 @@ class WordSet:
                 continue
             pairs, labels = skipgrams(wid_seq, vocab_size)            
             yield pairs, labels
+
+    def generate_cbow(self, texts, window_size=1, negative_samples=1.0, verbose=False):        
+        vector_length = 2*window_size + 1
+        word_index_seqs = self.text_to_word_id_sequence(texts)
+
+        n_positive_samples = 0
+        for wid_seq, text in zip(word_index_seqs, texts):
+            if verbose:
+                print(text)
+            # generate postive cbows for a sequence
+            positive_pairs = []
+            for start in range(len(wid_seq)-vector_length):
+                context_wids = wid_seq[start:start+vector_length]
+                target_wid = context_wids.pop(int(vector_length/2)) # center wid
+                pos_pair = ((context_wids, target_wid), 1)                
+                positive_pairs.append(pos_pair)               
+                if verbose:
+                    context_words = [f'{self.word_set[wid]}({wid})' for wid in context_wids]
+                    target_word = f'{self.word_set[target_wid]}({target_wid})'                    
+                    print(f'\t({context_words}, {target_word}) -> 1')
+            yield positive_pairs
+            n_positive_samples += len(positive_pairs)               
+
+        # negative sample generation
+        negative_pairs = []
+        n_negative_samples = int(n_positive_samples * negative_samples)
+        while len(negative_pairs) < n_negative_samples:
+            # randomly select 2*window_size + 1 words from vocabulary
+            # without replacement.
+            context_words = self.word_set.sample(vector_length)
+            context_wids = [self.get_word_index(word) for word in context_words]
+            target_wid = context_wids.pop(int(vector_length/2))
+            pair_candidate = (context_wids, target_wid)            
+            # check duplicates
+            if (not (pair_candidate, 1) in positive_pairs 
+                and not (pair_candidate, 0) in negative_pairs):
+                negative_pairs.append((pair_candidate, 0))                     
+
+        yield negative_pairs
+            
