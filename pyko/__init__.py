@@ -9,9 +9,9 @@ import pandas as pd
 from pandas import Series
 from keras.preprocessing.sequence import skipgrams
 
-from . import reader
+from pyko.reader import SejongCorpusReader
 
-__all__ = [reader]
+
 __version__ = '0.4.0'
 
 
@@ -109,13 +109,14 @@ class WordSet:
             id_seq = [self.get_word_index(token) for token in text if re.match(pattern, token)]
             yield id_seq
             
-    def generate_skipgrams(self, texts):
+    def generate_skipgrams(self, texts, window_size=4, negative_samples=1.0, shuffle=True):
         vocab_size = len(self.word_set)
         word_index_seqs = self.text_to_word_id_sequence(texts)
         for wid_seq in word_index_seqs:
             if len(wid_seq) < 2:
                 continue
-            pairs, labels = skipgrams(wid_seq, vocab_size)            
+            pairs, labels = skipgrams(wid_seq, vocab_size, 
+                window_size, negative_samples, shuffle)            
             yield pairs, labels
 
     def generate_cbow(self, texts, window_size=1, negative_samples=1.0, verbose=False):        

@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='pyko',
-    version='0.3.0',
+    version='0.3.1',
     description='Korean Text Processor',
     author='Lee Seongjoo',
     author_email='seongjoo@codebasic.io',
@@ -11,7 +11,7 @@ setup(
     keywords='natural language processing text korean',
     packages=find_packages(),
     package_data={
-        'pyko': ['java/*.jar']
+        'pyko': ['java/*.jar', 'data/*.json']
     },
     install_requires=['jpype1', 'nltk']
 )

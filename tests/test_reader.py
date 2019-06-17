@@ -1,15 +1,17 @@
 import os
 import re
 import pytest
+from pandas import DataFrame
+
 from pyko.reader import SejongCorpusReader
 
 
 @pytest.fixture
 def reader():
-    reader = SejongCorpusReader(
-        'corpus/sejong', r'spoken/word_tag/.+\.txt', encoding='utf-16')
-    return reader
+    return SejongCorpusReader(root=ROOT, fileids=r'.+/word_tag/.+\.txt$')
+    
 
+ROOT = 'corpus/sejong/'
 
 class TestSejong:
     def test_fileids(self):
@@ -48,13 +50,47 @@ class TestSejong:
         reader = SejongCorpusReader(
             root='corpus/sejong',
             fileids=['spoken/word_tag/5CT_0013.txt', 'written/word_tag/BSAA0001.txt'])
-        tokens = reader.words()
-        tagged_tokens = reader.words(tagged=True)
+
+        def 형태소양식(형태소):
+            # 빈 형태소 포함 확인
+            assert 형태소
+            # 형태소 주석 제거 확인
+            # 예: 세계__02 --> 세계
+            assert not re.search(r'(.+)__\d{1,}', 형태소)            
+        
+        구어파일 = reader.fileids()[0]
+        tokens = reader.words(구어파일)
+        tagged_tokens = reader.words(구어파일, tagged=True)
         test_tokens = []
-        for raw, token in tagged_tokens:
-            for word, tag in token:
-                test_tokens.append(word)
+        for 어절, 형태분석 in tagged_tokens:
+            for 형태소, 품사 in 형태분석:
+                test_tokens.append(형태소)
         assert tokens[:] == test_tokens[:]
+
+        # 문어 파일
+        현대문어 = SejongCorpusReader('corpus/sejong', r'written/word_tag/.+\.txt$')
+        
+        for fid in 현대문어.fileids()[:10]:
+            tokens = 현대문어.words(fid)[:]
+            assert tokens
+            
+            for 형태소 in tokens:
+                형태소양식(형태소)
+
+            # words()와 words(tagged=True)의 형태소 일치 여부 확인
+            어절_형태분석 = 현대문어.words(fid, tagged=True, 어절=True)[:]
+            assert 어절_형태분석
+
+            test_tokens = []
+            for 어절, 형태분석 in 어절_형태분석:
+                for 형태소, 품사 in 형태분석:
+                    test_tokens.append(형태소)
+            assert tokens == test_tokens
+
+            기대값 = []
+            for 어절, 형태분석 in 어절_형태분석:
+                기대값.extend(형태분석)
+            assert 기대값 == 현대문어.words(fid, tagged=True)[:]
 
     def test_sents(self, reader):
         sents = reader.sents()
@@ -69,3 +105,8 @@ class TestSejong:
     def test_token_sents(self, reader):        
         expected = ('뭐', '타', '고', '가', 'ㅏ', '?')
         assert expected == reader.token_sents()[0]
+
+    def test_tagset(self):
+        tagset_frame = SejongCorpusReader.get_tagset()
+        assert isinstance(tagset_frame, DataFrame)
+        assert len(tagset_frame)        
