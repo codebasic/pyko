@@ -10,8 +10,5 @@ setup(
     url='https://github.com/codebasic/pyko',
     keywords='natural language processing text korean',
     packages=find_packages(),
-    package_data={
-        'pyko': ['java/*.jar']
-    },
-    install_requires=['jpype1', 'nltk']
+    install_requires=['nltk', 'beautifulsoup4', 'lxml']
 )

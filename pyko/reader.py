@@ -6,7 +6,7 @@ import itertools
 import abc
 import reprlib
 
-from nltk.corpus.reader.api import CorpusReader
+from nltk.corpus import CorpusReader
 from bs4 import BeautifulSoup
 
 
@@ -79,10 +79,10 @@ class SejongWordSeq(TokenSeq):
                     continue
 
                 token = raw_token[0]
-                tagged_tokens = tuple(tuple(tag.split('/')) for tag in raw_token[-1].split('+'))
+                형태분석목록 = tuple(tuple(tag.split('/')) for tag in raw_token[-1].split('+'))
 
                 if self._tagged:
-                    yield (token, tagged_tokens)
+                    yield (token, 형태분석목록)
                 else:
                     yield token
 
@@ -107,10 +107,10 @@ class SejongSentSeq(TokenSeq):
                     continue
 
                 token = raw_token[0]
-                tagged_tokens = tuple(tuple(tag.split('/')) for tag in raw_token[-1].split('+'))
+                형태분석목록 = tuple(tuple(tag.split('/')) for tag in raw_token[-1].split('+'))
 
                 if self._tagged:
-                    sent.extend(tagged_tokens)
+                    sent.extend(형태분석목록)
                 else:
                     sent.append(token)
             yield sent

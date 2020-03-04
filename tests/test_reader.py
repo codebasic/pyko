@@ -5,38 +5,22 @@ from pyko.reader import SejongCorpusReader
 
 
 class TestSejong:
-    def test_fileids(self):
-        ROOT = '../corpus/sejong/'
-
-        pattern = '.+/.+/.+\.txt'
-        files_regex = re.compile(ROOT + pattern)
-        expected_files = []
-        for root, dirs, files in os.walk(ROOT):
-            for filename in files:
-                filepath = os.path.join(root, filename)
-                if files_regex.match(filepath):
-                    expected_files.append(filepath)
-
+    CORPUS_ROOT = os.environ['CORPUS_ROOT']
+    CORPUS_PATH = os.path.join(CORPUS_ROOT, 'sejong')
+        
+    def test_words(self):        
         reader = SejongCorpusReader(
-            root=ROOT, fileids=pattern, encoding='utf-16')
-
-        fileids = [os.path.join(ROOT, entry) for entry in reader.fileids()]
-
-        assert sorted(expected_files) == sorted(fileids)
+                TestSejong.CORPUS_PATH, r'spoken/word_tag/.+\.txt', encoding='utf-16')
+        형태분석목록 = reader.words(tagged=True)
         
-    def test_words(self):
-        reader = SejongCorpusReader(
-                'corpus/sejong', 'spoken/word_tag/.+\.txt', encoding='utf-16')
-        tagged_tokens = reader.words(tagged=True)
+        assert len(형태분석목록)
         
-        assert len(tagged_tokens)
-        
-        for token, tags in tagged_tokens:
-            assert len(tags)
-            for tag in tags:
+        for 어절, 형태분석 in 형태분석목록:
+            assert len(형태분석)
+            for tag in 형태분석:
                 assert len(tag) == 2
 
-        assert tagged_tokens[0]
+        assert 형태분석목록[0]
         
-        assert len(tagged_tokens[:10]) == 10
-        assert len(tagged_tokens[10:30]) == 20
+        assert len(형태분석목록[:10]) == 10
+        assert len(형태분석목록[10:30]) == 20
