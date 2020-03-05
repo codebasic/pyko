@@ -1,10 +1,9 @@
 import inspect
 import pytest
 
-from pyko.tokenizer import 카카오_카이
+from pyko import tokenizer as 형태소_분석기
 
 def test_tokenize():
-    형태소_분석기 = 카카오_카이()
     예문 = '한국어를 잘 처리하는지 궁금합니다.'
     형태소_목록 = 형태소_분석기.tokenize(예문)
     assert inspect.isgenerator(형태소_목록)
