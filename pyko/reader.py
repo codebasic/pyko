@@ -98,7 +98,7 @@ class SejongWordSeq(TokenSeq):
         형태분석목록 = []
         for tag in raw_token[-1].split('+'):
             try:
-                형태소, 품사 = tag.split('/', maxsplit=1)
+                형태소, _, 품사 = [원소 for 원소 in re.split('(/)', tag) if 원소]
             except ValueError:
                 continue
             else:
