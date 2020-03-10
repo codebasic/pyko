@@ -1,6 +1,6 @@
 import os
+import re
 import pytest
-from pandas import DataFrame
 
 from pyko.reader import SejongCorpusReader
 
@@ -26,4 +26,7 @@ def test_words(세종말뭉치):
         for 형태소, 품사 in 형태분석:
             assert 형태소
             assert 품사
+
+            # 형태소 뒷번호 정리 확인 예: 세계__02 --> 세계
+            assert not re.search(r'__\d{1,}', 형태소)
         

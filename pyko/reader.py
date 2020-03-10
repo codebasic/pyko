@@ -117,6 +117,8 @@ class SejongWordSeq(TokenSeq):
             except ValueError:
                 continue
             else:
+                # 형태소 뒷번호 정리. 예: 세계__02 --> 세계
+                형태소 = re.sub(r'__\d{1,}', '', 형태소)
                 if not 형태소 or not 품사:
                     continue
                 형태분석목록.append((형태소, 품사))
