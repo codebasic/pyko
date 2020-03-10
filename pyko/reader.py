@@ -5,6 +5,7 @@ Author: Lee Seongjoo <seongjoo@codebasic.io>
 import itertools
 import abc
 import reprlib
+import re
 
 from nltk.corpus import CorpusReader
 from bs4 import BeautifulSoup
@@ -68,7 +69,7 @@ class SejongWordSeq(TokenSeq):
         """각 파일별 토큰 생성"""
         soup = BeautifulSoup(open(fileid, encoding=self.encoding), 'lxml')
         body = soup.find('text')
-        sent_elt = body.find_all('s')
+        sent_elt = body.find_all(re.compile('^s$|^p$'))
 
         for elt in sent_elt:
             if elt.find('note'):
@@ -79,12 +80,24 @@ class SejongWordSeq(TokenSeq):
                     continue
 
                 token = raw_token[0]
-                형태분석목록 = tuple(tuple(tag.split('/')) for tag in raw_token[-1].split('+'))
+                형태분석목록 = self._형태분석해독(raw_token)
+                # 형태 분석 결과가 없는 경우 확인
+                if not len(형태분석목록):
+                    continue
 
                 if self._tagged:
                     yield (token, 형태분석목록)
                 else:
                     yield token
+
+    def _형태분석해독(self, raw_token):
+        형태분석목록 = []
+        for tag in raw_token[-1].split('+'):
+            형태소, 품사 = tuple(tag.split('/'))
+            if not 형태소 or not 품사:
+                continue
+            형태분석목록.append((형태소, 품사))
+        return tuple(형태분석목록)
 
 
 class SejongSentSeq(TokenSeq):
