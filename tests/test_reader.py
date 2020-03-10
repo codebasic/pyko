@@ -6,10 +6,14 @@ from pyko.reader import SejongCorpusReader
 CORPUS_ROOT = os.environ['CORPUS_ROOT']
 SEJONG_CORPUS_PATH = os.path.join(CORPUS_ROOT, 'sejong')
 
-@pytest.fixture(scope='module', params=[r'spoken/word_tag/.+\.txt'])
+@pytest.fixture(scope='module', 
+    params=[r'spoken/word_tag/.+\.txt', r'written/word_tag/.+\.txt'])
 def 세종말뭉치(request):
     return SejongCorpusReader(SEJONG_CORPUS_PATH, request.param)
         
+def test_fileids(세종말뭉치):
+    assert 세종말뭉치.fileids()
+    
 def test_words(세종말뭉치):
     형태분석목록 = 세종말뭉치.words(tagged=True)
     assert len(형태분석목록)

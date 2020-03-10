@@ -1,5 +1,5 @@
 """
-Copyright (C) 2017 Codebasic
+Copyright (C) 2017-2020 Codebasic
 Author: Lee Seongjoo <seongjoo@codebasic.io>
 """
 import itertools
@@ -40,7 +40,7 @@ class TokenSeq(abc.ABC):
         return reprlib.repr([token for token in itertools.islice(iter(self), 10)])
 
     @abc.abstractmethod
-    def _get_token(self, fileid, tagged):
+    def _get_token(self, fileid):
         """yield a token"""
 
 
@@ -80,6 +80,10 @@ class SejongWordSeq(TokenSeq):
                     continue
 
                 token = raw_token[0]
+                # 어절이 없는 경우 확인
+                if not token:
+                    continue
+
                 형태분석목록 = self._형태분석해독(raw_token)
                 # 형태 분석 결과가 없는 경우 확인
                 if not len(형태분석목록):
@@ -93,10 +97,14 @@ class SejongWordSeq(TokenSeq):
     def _형태분석해독(self, raw_token):
         형태분석목록 = []
         for tag in raw_token[-1].split('+'):
-            형태소, 품사 = tuple(tag.split('/'))
-            if not 형태소 or not 품사:
+            try:
+                형태소, 품사 = tag.split('/', maxsplit=1)
+            except ValueError:
                 continue
-            형태분석목록.append((형태소, 품사))
+            else:
+                if not 형태소 or not 품사:
+                    continue
+                형태분석목록.append((형태소, 품사))
         return tuple(형태분석목록)
 
 
