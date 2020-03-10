@@ -1,17 +1,14 @@
 """
-Copyright (C) 2017-2018 Codebasic
-
+Copyright (C) 2017-2020 Codebasic
 Author: Lee Seongjoo <seongjoo@codebasic.io>
 """
 import itertools
 import abc
 import reprlib
 import re
-import os.path
 
 from nltk.corpus import CorpusReader
 from bs4 import BeautifulSoup
-import pandas as pd
 
 
 class TokenSeq(abc.ABC):
@@ -73,17 +70,7 @@ class SejongCorpusReader(CorpusReader):
         return self.sents(fileids, tagged=True)
 
     def token_sents(self, fileids=None):
-        return self.sents(fileids, token=True)
-
-    @property
-    def tagset(self):
-        return SejongCorpusReader.get_tagset()
-
-    @staticmethod
-    def get_tagset():
-        tagset_file = os.path.join(os.path.dirname(__file__), 'data/sejong_tagset.json')
-        tagset = pd.read_json(tagset_file, orient='index')
-        return tagset
+        return self.sents(fileids, token=True)  
 
 
 class SejongWordSeq(TokenSeq):
@@ -96,8 +83,7 @@ class SejongWordSeq(TokenSeq):
         """각 파일별 토큰 생성"""
         soup = BeautifulSoup(open(fileid, encoding=self.encoding), 'lxml')
         body = soup.find('text')
-        # 구어
-        sent_elt = body.find_all('s')
+        sent_elt = body.find_all(re.compile('^s$|^p$'))
 
         for elt in sent_elt:
             if elt.find('note'):
@@ -108,60 +94,33 @@ class SejongWordSeq(TokenSeq):
                     continue
 
                 token = raw_token[0]
-                tagged_tokens = tuple(tuple(tag.split('/'))
-                                      for tag in raw_token[-1].split('+'))
+                # 어절이 없는 경우 확인
+                if not token:
+                    continue
+
+                형태분석목록 = self._형태분석해독(raw_token)
+                # 형태 분석 결과가 없는 경우 확인
+                if not len(형태분석목록):
+                    continue
 
                 if self._tagged:
-                    yield (token, tagged_tokens)
+                    yield (token, 형태분석목록)
                 else:
-                    for word, tag in tagged_tokens:
-                        yield word
+                    yield token
+        
 
-        # 문어
-        for 문단요소 in body.find_all('p'):
-            for 줄 in 문단요소.text.split('\n'):
-                if not 줄:
+    def _형태분석해독(self, raw_token):
+        형태분석목록 = []
+        for tag in raw_token[-1].split('+'):
+            try:
+                형태소, _, 품사 = [원소 for 원소 in re.split('(/)', tag) if 원소]
+            except ValueError:
+                continue
+            else:
+                if not 형태소 or not 품사:
                     continue
-                try:
-                    _, 어절, 형태분석 = 줄.split('\t', maxsplit=2)
-                except ValueError:
-                    # 형태분석이 누락된 경우
-                    continue
-                형태분석 = 형태분석.strip()
-
-                if not 어절:
-                    continue
-
-                형태소_품사_쌍_목록 = []
-                for 형태소_품사 in 형태분석.replace(' ', '').split('+'):
-                    # //SP 와 같은 경우 때문에, 정규식 활용 필요.
-                    try:
-                        형태소, 품사 = re.findall(r'.+(?=/)|(?<=/).+', 형태소_품사)
-                    except ValueError:
-                        # 형태소 또는 품사가 없는 경우
-                        continue
-                    
-                    # 빈 형태소 제외
-                    if not 형태소:
-                        continue
-                    # 형태소 주석 제거: 세계__02 --> 세계
-                    형태소 = re.sub(r'(.+)__\d{1,}', r'\1', 형태소)
-                    형태소_품사_쌍_목록.append((형태소, 품사))
-
-                형태소_품사_쌍_목록 = tuple(형태소_품사_쌍_목록)
-                # 결과 반환
-                if self._어절 and self._tagged:
-                    yield (어절, 형태소_품사_쌍_목록)
-                elif not self._어절 and self._tagged:
-                    for 형태소, 품사 in 형태소_품사_쌍_목록:
-                        yield 형태소, 품사
-                elif self._어절 and not self._tagged:
-                    for 형태소, _ in 형태소_품사_쌍_목록:
-                        yield (어절, 형태소)
-                else:
-                    for 형태소, _ in 형태소_품사_쌍_목록:
-                        yield 형태소
-
+                형태분석목록.append((형태소, 품사))
+        return tuple(형태분석목록)
 
 
 class SejongSentSeq(TokenSeq):
@@ -214,3 +173,11 @@ class SejongSentSeq(TokenSeq):
 
                     pieces.append(raw_token[0])
                 yield ' '.join(pieces)
+                token = raw_token[0]
+                형태분석목록 = tuple(tuple(tag.split('/')) for tag in raw_token[-1].split('+'))
+
+                if self._options['tagged']:
+                    sent.extend(형태분석목록)
+                else:
+                    sent.append(token)
+            yield sent
