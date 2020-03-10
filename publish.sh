@@ -1,2 +1,2 @@
 dist=$1
-twine upload $dist
+python -m twine upload $dist
