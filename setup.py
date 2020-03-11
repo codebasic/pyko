@@ -10,5 +10,11 @@ setup(
     url='https://github.com/codebasic/pyko',
     keywords='natural language processing text korean',
     packages=find_packages(),
-    install_requires=['nltk', 'beautifulsoup4', 'lxml']
+    install_requires=['nltk', 'beautifulsoup4', 'lxml'],
+    classifiers=[
+        'Programming Language :: Python :: 3 :: Only',
+        'Natural Language :: Korean',
+        'Operating System :: POSIX :: Linux',
+        'Operating System :: MacOS :: MacOS X'
+    ]
 )
