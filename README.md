@@ -11,11 +11,11 @@ PyPI에 등록된 패키지를 다음과 같이 설치할 수 있습니다.
 
 ## 세종말뭉치
 
-[세종말뭉치](https://www.korean.go.kr/nkview/nklife/2016_2/26_0204.pdf)를 NLTK CorpusReader를 활용하는 것과 유사하게 활용할 수 있습니다. [세종말뭉치는 국립국어원 언어정보나눔터](https://ithub.korean.go.kr/)에서 획득할 수 있습니다.
+[세종말뭉치](https://www.korean.go.kr/nkview/nklife/2016_2/26_0204.pdf)를 NLTK CorpusReader를 활용하는 것과 유사하게 활용할 수 있습니다. 세종말뭉치는 [국립국어원 언어정보나눔터](https://ithub.korean.go.kr/)에서 획득할 수 있습니다.
 
 사용예시:
 
-~~~~.python
+```python
 from pyko.reader import SejongCorpusReader
 
 세종말뭉치 = SejongCorpusReader(root, fileids)
@@ -34,8 +34,7 @@ print(형태분석문장목록[0])
  ('타고', (('타', 'VV'), ('고', 'EC'))),
  ('가?', (('가', 'VV'), ('ㅏ', 'EF'), ('?', 'SF')))]
 """
-
-~~~~
+```
 
 ## 형태소 분리 및 품사 예측
 
@@ -46,9 +45,15 @@ print(형태분석문장목록[0])
 
 pyko 도커 이미지: [codebasic/pyko](https://hub.docker.com/repository/docker/codebasic/pyko)
 
+도커 이미지 사용 예시
+
+```
+$ docker run -it codebasic/pyko
+```
+
 사용예시:
 
-~~~~.python
+```python
 from pyko import tokenizer as 형태소_분석기
 
 예문 = '한국어를 잘 처리하는지 궁금합니다.'
@@ -57,8 +62,4 @@ print(list(분석결과))
 """
 ['한국어', '를', '잘', '처리', '하', '는지', '궁금', '하', 'ㅂ니다', '.']
 """
-~~~~
-
-## 의존성 라이브러리
-
-[kakao/khaiii](https://github.com/kakao/khaiii)
+```
