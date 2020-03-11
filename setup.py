@@ -1,5 +1,7 @@
 from setuptools import setup, find_packages
 
+with open('README.md', encoding='utf8') as f:
+    문서 = f.read()
 
 setup(
     name='pyko',
@@ -16,5 +18,8 @@ setup(
         'Natural Language :: Korean',
         'Operating System :: POSIX :: Linux',
         'Operating System :: MacOS :: MacOS X'
-    ]
+    ],
+    long_description=문서,
+    long_description_content_type="text/markdown",
+    python_requires='>=3.7'
 )
