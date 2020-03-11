@@ -52,7 +52,7 @@ class SejongCorpusReader(CorpusReader):
     def __init__(self, root, fileids, encoding='utf-16'):
         super().__init__(root, fileids, encoding)
 
-    def words(self, fileids=None, tagged=False, 어절=False):
+    def words(self, fileids=None, tagged=False, 형태분리=True):
         """
         말뭉치로부터 토큰 획득
 
@@ -61,23 +61,18 @@ class SejongCorpusReader(CorpusReader):
         :return: 토큰 생성기
         :rtype: generator
         """
-        return SejongWordSeq([fid for fid in self.abspaths(fileids)], encoding=self._encoding, tagged=tagged, 어절=어절)
+        return SejongWordSeq([fid for fid in self.abspaths(fileids)], encoding=self._encoding, tagged=tagged, 형태분리=형태분리)
 
-    def sents(self, fileids=None, **options):
-        return SejongSentSeq([fid for fid in self.abspaths(fileids)], encoding=self._encoding, **options)
-
-    def tagged_sents(self, fileids=None):
-        return self.sents(fileids, tagged=True)
-
-    def token_sents(self, fileids=None):
-        return self.sents(fileids, token=True)  
+    def sents(self, fileids=None, tagged=False, 형태분리=False):
+        return SejongWordSeq([fid for fid in self.abspaths(fileids)], encoding=self._encoding, tagged=tagged, 형태분리=형태분리, sents=True)
 
 
 class SejongWordSeq(TokenSeq):
-    def __init__(self, fileids, encoding, tagged, 어절):
+    def __init__(self, fileids, encoding, tagged, 형태분리, sents=False):
         super().__init__(fileids, encoding)
         self._tagged = tagged
-        self._어절 = 어절
+        self._형태분리 = 형태분리
+        self._sents = sents
 
     def _get_token(self, fileid):
         """각 파일별 토큰 생성"""
@@ -86,6 +81,7 @@ class SejongWordSeq(TokenSeq):
         sent_elt = body.find_all(re.compile('^s$|^p$'))
 
         for elt in sent_elt:
+            문장 = []
             if elt.find('note'):
                 continue  # skip <note>
             for line in elt.text.split('\n'):
@@ -102,12 +98,21 @@ class SejongWordSeq(TokenSeq):
                 # 형태 분석 결과가 없는 경우 확인
                 if not len(형태분석목록):
                     continue
-
-                if self._tagged:
-                    yield (token, 형태분석목록)
-                else:
-                    yield token
-        
+                
+                if not self._sents:
+                    if self._tagged:
+                        yield (token, 형태분석목록)
+                    else:
+                        yield token
+                else: # 문장 단위인 경우
+                    if self._tagged:
+                        문장.append((token, 형태분석목록))
+                    elif self._형태분리:
+                        문장.extend(형태소 for 형태소, 품사 in 형태분석목록)
+                    else:
+                        문장.append(token)
+            
+            yield 문장
 
     def _형태분석해독(self, raw_token):
         형태분석목록 = []
@@ -119,67 +124,9 @@ class SejongWordSeq(TokenSeq):
             else:
                 # 형태소 뒷번호 정리. 예: 세계__02 --> 세계
                 형태소 = re.sub(r'__\d{1,}', '', 형태소)
+                # 공백 제거
+                형태소 = 형태소.strip()
                 if not 형태소 or not 품사:
                     continue
                 형태분석목록.append((형태소, 품사))
         return tuple(형태분석목록)
-
-
-class SejongSentSeq(TokenSeq):
-    def __init__(self, fileids, encoding, **options):
-        super().__init__(fileids, encoding)
-        self._options = options
-
-    def _get_token(self, fileid):
-        soup = BeautifulSoup(open(fileid, encoding=self.encoding), 'lxml')
-        body = soup.find('text')
-        sent_elt = body.find_all('s')
-
-        for elt in sent_elt:
-            if elt.find('note'):
-                continue  # skip <note>
-
-            if self._options.get('tagged'):
-                sent = []            
-                for line in elt.text.split('\n'):
-                    raw_token = line.split('\t')[-2:]
-                    if not raw_token[-1]:
-                        continue
-
-                    tagged_tokens = tuple(tuple(tag.split('/'))
-                                        for tag in raw_token[-1].split('+'))
-
-                    
-                    sent.extend(tagged_tokens)
-                yield sent
-
-            elif self._options.get('token'):
-                pieces=[]
-                for line in elt.text.split('\n'):
-                    raw_token = line.split('\t')[-2:]
-                    if not raw_token[-1]:
-                        continue
-                    
-                    tagged_tokens = tuple(tuple(tag.split('/'))
-                                        for tag in raw_token[-1].split('+'))
-                    tokens = tuple(token for token, tag in tagged_tokens)
-                    pieces.extend(tokens)
-                yield tuple(pieces)
-
-            else:
-                pieces=[]
-                for line in elt.text.split('\n'):
-                    raw_token = line.split('\t')[-2:]
-                    if not raw_token[-1]:
-                        continue
-
-                    pieces.append(raw_token[0])
-                yield ' '.join(pieces)
-                token = raw_token[0]
-                형태분석목록 = tuple(tuple(tag.split('/')) for tag in raw_token[-1].split('+'))
-
-                if self._options['tagged']:
-                    sent.extend(형태분석목록)
-                else:
-                    sent.append(token)
-            yield sent
