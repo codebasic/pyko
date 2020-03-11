@@ -1,2 +1,2 @@
 # coding: utf-8
-__all__ = ["reader", "tokenizer"]
+__version__ = '0.4.0'
