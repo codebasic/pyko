@@ -57,9 +57,25 @@ $ docker run -it codebasic/pyko
 from pyko import tokenizer as 형태소_분석기
 
 예문 = '한국어를 잘 처리하는지 궁금합니다.'
-분석결과 = 형태소_분석기.tokenize(예문)
-print(list(분석결과))
+
+형태소목록 = 형태소_분석기.tokenize(예문)
+print(list(형태소목록))
 """
 ['한국어', '를', '잘', '처리', '하', '는지', '궁금', '하', 'ㅂ니다', '.']
+"""
+
+형태분석결과 = 형태소_분석기.tokenize(예문, tagged=True)
+print(list(형태분석결과))
+"""
+[('한국어', 'NNP'),
+ ('를', 'JKO'),
+ ('잘', 'MAG'),
+ ('처리', 'NNG'),
+ ('하', 'XSV'),
+ ('는지', 'EC'),
+ ('궁금', 'XR'),
+ ('하', 'XSA'),
+ ('ㅂ니다', 'EF'),
+ ('.', 'SF')]
 """
 ```
