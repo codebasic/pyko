@@ -1,3 +1,4 @@
+import os
 from setuptools import setup, find_packages
 
 with open('README.md', encoding='utf8') as f:
@@ -5,7 +6,7 @@ with open('README.md', encoding='utf8') as f:
 
 setup(
     name='pyko',
-    version='0.4.1',
+    version=os.environ['VERSION'],
     description='Korean Text Processor',
     author='Lee Seongjoo',
     author_email='seongjoo@codebasic.io',
