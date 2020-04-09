@@ -59,13 +59,13 @@ from pyko import tokenizer as 형태소_분석기
 예문 = '한국어를 잘 처리하는지 궁금합니다.'
 
 형태소목록 = 형태소_분석기.tokenize(예문)
-print(list(형태소목록))
+print(형태소목록)
 """
 ['한국어', '를', '잘', '처리', '하', '는지', '궁금', '하', 'ㅂ니다', '.']
 """
 
 형태분석결과 = 형태소_분석기.tokenize(예문, tagged=True)
-print(list(형태분석결과))
+print(형태분석결과)
 """
 [('한국어', 'NNP'),
  ('를', 'JKO'),
@@ -79,3 +79,22 @@ print(list(형태분석결과))
  ('.', 'SF')]
 """
 ```
+
+## NLTK 연동
+
+말뭉치 관리를 위해 NLTK CourpusReader와 연동해서 사용할 수 있습니다.
+
+사용예시:
+
+```python
+from pyko import tokenizer as 형태소_분석기
+from nltk.corpus import PlaintextCorpusReader
+
+reader = PlaintextCorpusReader(root, fileids, word_tokenizer=형태소_분석기)
+형태분석결과 = reader.words()
+print(형태분석결과)
+"""
+['세종', '(', '世宗', ',', '1397', '년', '5', '월', '7', '일', '(', '음력', '4', '월', ...]
+"""
+```
+
