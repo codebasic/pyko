@@ -1,11 +1,11 @@
 FROM codebasic/khaiii
 
-RUN pip install nltk pandas matplotlib scikit-learn lxml
+WORKDIR /workspaces
 
-ENV WORKDIR=/workspaces
-WORKDIR ${WORKDIR}
-
-ENV DIST_FILE=pyko-0.4.1-py3-none-any.whl
-COPY dist/${DIST_FILE} .
+ENV DIST_FILE=pyko-0.4.2-py3-none-any.whl
+COPY ${DIST_FILE} .
 RUN pip install ${DIST_FILE}
 RUN rm ${DIST_FILE}
+
+WORKDIR /
+RUN rm -rf /workspaces
