@@ -22,5 +22,5 @@ setup(
     ],
     long_description=문서,
     long_description_content_type="text/markdown",
-    python_requires='>=3.7'
+    python_requires='>=3.4'
 )
